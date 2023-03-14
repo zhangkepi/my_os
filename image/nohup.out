@@ -1,0 +1,29 @@
+node:events:504
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: EBADF: bad file descriptor, read
+Emitted 'error' event on ReadStream instance at:
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at errorOrDestroy (node:internal/streams/destroy:220:7)
+    at node:internal/fs/streams:258:9
+    at FSReqCallback.wrapper [as oncomplete] (node:fs:660:5) {
+  errno: -9,
+  code: 'EBADF',
+  syscall: 'read'
+}
+CompileCommand: exclude com/intellij/openapi/vfs/impl/FilePartNodeRoot.trieDescend bool exclude = true
+Info  | RdCoroutineScope          | 13:JobScheduler FJ pool 1/7 | RdCoroutineHost overridden 
+2022-10-23 00:21:59,299 [   4722]   WARN - #c.i.o.a.i.ActionUpdater - 202 ms to grab EDT for CWMTelephonyGroup#update@NavBarToolbar (com.jetbrains.rd.platform.codeWithMe.telephony.CWMTelephonyGroup)
+2022-10-23 00:22:01,817 [   7240]   WARN - #c.i.o.a.i.ActionUpdater - 799 ms to grab EDT for BackAction#update@MainToolbar (com.intellij.ide.actions.BackAction)
+2022-10-23 00:22:01,817 [   7240]   WARN - #c.i.o.a.i.ActionUpdater - 799 ms to grab EDT for CWMTelephonyGroup#update@NavBarToolbar (com.jetbrains.rd.platform.codeWithMe.telephony.CWMTelephonyGroup)
+2022-10-23 00:22:02,518 [   7941]   WARN - #c.i.u.x.Binding - no accessors for org.jetbrains.idea.perforce.perforce.ConnectionId
+2022-10-23 00:22:15,162 [  20585]   WARN - #c.i.o.a.i.ActionUpdater - 405 ms to grab EDT for #update@ToolwindowTitle (com.intellij.toolWindow.ToolWindowHeader$2)
+2022-10-23 00:22:15,173 [  20596]   WARN - #c.i.o.a.i.ActionUpdater - 333 ms to grab EDT for #update@EditorInspectionsToolbar (com.intellij.codeInsight.actions.ReaderModeActionProvider$createAction$1)
+2022-10-23 00:22:48,854 [  54277]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/runtime/java.cpp: Unknown argument: '-fno-lifetime-dse'
+2022-10-23 00:23:26,884 [  92307]   WARN - #c.i.o.a.i.ActionUpdater - 210 ms to grab EDT for GitCommitWithStagingAreaAction#update@NavBarToolbar (git4idea.index.actions.GitCommitWithStagingAreaAction)
+2022-10-23 00:23:26,909 [  92332]   WARN - #c.i.o.a.i.ActionUpdater - 208 ms to grab EDT for SelectFileAction#update@ToolwindowTitle (com.intellij.ide.projectView.impl.SelectFileAction)
+2022-10-23 00:23:28,721 [  94144]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/runtime/javaCalls.cpp: Unknown argument: '-fno-lifetime-dse'
+2022-10-23 00:23:28,981 [  94404]   WARN - #c.i.o.a.i.ActionUpdater - 235 ms to grab EDT for GitCommitWithStagingAreaAction#update@NavBarToolbar (git4idea.index.actions.GitCommitWithStagingAreaAction)
+2022-10-23 00:23:28,982 [  94405]   WARN - #c.i.o.a.i.ActionUpdater - 235 ms to grab EDT for ExpandAllAction#update@ToolwindowTitle (com.intellij.ide.actions.ExpandAllAction)
+2022-10-23 01:04:34,754 [2560177]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/runtime/javaCalls.cpp: Unknown argument: '-fno-lifetime-dse'
