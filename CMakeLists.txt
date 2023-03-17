@@ -8,7 +8,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)   # 开启输出编译详细过程的提示
 # 目前mac和win上使用x86_64-elf-
 if (CMAKE_HOST_WIN32 OR CMAKE_HOST_APPLE)
     set(TOOL_PREFIX  "x86_64-elf-")
-elseif (CMAKE_HOST_WIN32)
+elseif (CMAKE_HOST_UNIX)
     set(TOOL_PREFIX  "x86_64-linux-gnu-")    # 待补充
 endif ()
 
@@ -46,7 +46,7 @@ include_directories(
 # 底层的若干子项目：含内核及应用程序
 add_subdirectory(./source/boot)
 add_subdirectory(./source/loader)
-# add_subdirectory(./source/kernel)
+add_subdirectory(./source/kernel)
 # add_subdirectory(./source/applib)
 # add_subdirectory(./source/shell)
 # add_subdirectory(./source/init)
