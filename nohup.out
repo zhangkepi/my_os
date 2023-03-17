@@ -1,0 +1,21 @@
+CompileCommand: exclude com/intellij/openapi/vfs/impl/FilePartNodeRoot.trieDescend bool exclude = true
+2023-03-31 21:09:17,515 [   1417]   WARN - #c.i.u.s.SvgCacheManager - Icon cache will be recreated or previous version of data reused, (db=/home/funeng/.cache/JetBrains/CLion2022.2/icons-v6.db)
+Info  | RdCoroutineScope          | 14:JobScheduler FJ pool 2/7 | RdCoroutineHost overridden 
+2023-03-31 21:09:29,409 [  13311]   WARN - #c.i.o.a.i.ActionUpdater - 1183 ms to grab EDT for CWMTelephonyGroup#update@NavBarToolbar (com.jetbrains.rd.platform.codeWithMe.telephony.CWMTelephonyGroup)
+2023-03-31 21:09:29,869 [  13771]   WARN - #c.i.o.a.i.ActionUpdater - 451 ms to grab EDT for CidrBuildTargetAction#update@NavBarToolbar (com.jetbrains.cidr.execution.build.CidrBuildTargetAction)
+2023-03-31 21:09:30,968 [  14870]   WARN - #c.i.o.a.i.ActionUpdater - 302 ms to grab EDT for CWMTelephonyGroup#update@NavBarToolbar (com.jetbrains.rd.platform.codeWithMe.telephony.CWMTelephonyGroup)
+2023-03-31 21:09:30,968 [  14870]   WARN - #c.i.o.a.i.ActionUpdater - 294 ms to grab EDT for MkLoadProjectAction#update@ProjectViewPopup (com.jetbrains.cidr.cpp.makefile.actions.MkLoadProjectAction)
+2023-03-31 21:09:31,370 [  15272]   WARN - #c.i.u.x.Binding - no accessors for org.jetbrains.idea.perforce.perforce.ConnectionId
+2023-03-31 21:09:34,532 [  18434]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zPageAllocator.cpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:09:36,545 [  20447]   WARN - #c.i.o.a.i.ActionUpdater - 218 ms to grab EDT for GitCommitWithStagingAreaAction#update@NavBarToolbar (git4idea.index.actions.GitCommitWithStagingAreaAction)
+2023-03-31 21:09:37,955 [  21857]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zDriver.cpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:09:48,906 [  32808]   WARN - #c.i.o.a.i.ActionUpdater - 220 ms to grab EDT for CWMTelephonyGroup#update@NavBarToolbar (com.jetbrains.rd.platform.codeWithMe.telephony.CWMTelephonyGroup)
+2023-03-31 21:09:55,616 [  39518]   WARN - #c.i.o.a.i.ActionUpdater - 293 ms to grab EDT for CidrBuildTargetAction#update@NavBarToolbar (com.jetbrains.cidr.execution.build.CidrBuildTargetAction)
+2023-03-31 21:09:57,134 [  41036]   WARN - #c.i.o.a.i.ActionUpdater - 208 ms to grab EDT for CidrBuildTargetAction#update@NavBarToolbar (com.jetbrains.cidr.execution.build.CidrBuildTargetAction)
+2023-03-31 21:10:36,147 [  80049]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zCPU.hpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:10:36,426 [  80328]   WARN - #c.i.o.a.i.ActionUpdater - 223 ms to grab EDT for #update@ToolwindowTitle (com.intellij.toolWindow.ToolWindowHeader$2)
+2023-03-31 21:10:36,894 [  80796]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zCPU.hpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:10:38,329 [  82231]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zCPU.hpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:10:49,880 [  93782]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zCPU.cpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:20:01,310 [ 645212]   WARN - c.j.c.l.d.c.c.a.ClangErrorsAnnotatorPass - suppressed [drv_unknown_argument] /home/funeng/Work/Project/jdk17u/src/hotspot/share/gc/z/zCPU.hpp: Unknown argument: '-fno-lifetime-dse'
+2023-03-31 21:20:05,414 [ 649316]   WARN - #c.i.o.a.i.ActionUpdater - 207 ms to grab EDT for RestorePreviewTextAction#update@ContextToolbar (com.intellij.application.options.colors.FontEditorPreview$RestorePreviewTextAction)
