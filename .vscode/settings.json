@@ -13,6 +13,8 @@
         "boot_info.h": "c",
         "init.h": "c",
         "os_cfg.h": "c",
-        "cpu_instr.h": "c"
+        "cpu_instr.h": "c",
+        "log.h": "c",
+        "klib.h": "c"
     },
 }

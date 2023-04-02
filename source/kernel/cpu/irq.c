@@ -2,6 +2,7 @@
 #include "cpu/irq.h"
 #include "os_cfg.h"
 #include "cpu/cpu.h"
+#include "tools/log.h"
 
 
 void exception_handler_unknown(void);
@@ -118,8 +119,38 @@ void pic_send_eoi(int irq_num) {
     }
 }
 
+static void dump_core_regs(exception_frame_t * frame) {
+    log_printf("IRQ: %d, error_code: %d", frame->num, frame->error_code);
+    log_printf("CS: %d\r\n DS: %d\r\n ES: %d\r\n FS: %d\r\n GS: %d\r\n",
+        frame->cs, frame->ds, frame->es, frame->fs, frame->gs
+    );
+    log_printf("EAX: 0x%x\r\n"
+        "EBX: 0x%x\r\n"
+        "ECX: 0x%x\r\n"
+        "EDX: 0x%x\r\n"
+        "EDI: 0x%x\r\n"
+        "ESI: 0x%x\r\n"
+        "EBP: 0x%x\r\n"
+        "ESP: 0x%x\r\n",
+        frame->eax,
+        frame->ebx,
+        frame->ecx,
+        frame->edx,
+        frame->edi,
+        frame->esi,
+        frame->ebp,
+        frame->esp
+    );
+    log_printf("EIP: 0x%x\r\nEFLAGS: 0x%x\r\n", frame->eip, frame->eflags);
+}
 
 static void do_default_handler(exception_frame_t * frame, const char * message) {
+    
+    log_printf("------------------------------------------");
+    log_printf("IRQ/Exception happend: %s", message);
+
+    dump_core_regs(frame);
+
     for(;;) {
         hlt();
     }
