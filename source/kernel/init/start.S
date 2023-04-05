@@ -92,3 +92,27 @@ exception_handler virtualization_exception, 20, 0
 exception_handler control_protection_exception, 21, 1
 
 exception_handler time, 0x20, 0
+
+
+    # simple_switch(from, to)
+    .text 
+    .global simple_switch
+simple_switch:
+    # from stack
+    mov 4(%esp), %eax
+    # to stack 
+    mov 8(%esp), %edx
+    push %ebp
+    push %ebx
+    push %esi
+    push %edi
+    # 保存from stack
+    mov %esp, (%eax)
+
+    # 切换stack
+    mov %edx, %esp
+    pop %edi
+    pop %esi
+    pop %ebx
+    pop %ebp
+    ret
