@@ -24,12 +24,18 @@ void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr
 
 
 int gdt_alloc_desc() {
+
+    irq_state_t state = irq_enter_protection();
+
     for (int i = 1; i < GDT_TABLE_SIZE; i++) {
         segment_desc_t * desc = gdt_table + i;
         if (desc->attr == 0) {
+            irq_leave_protection(state);
             return i * sizeof(segment_desc_t);
         }
     }
+
+    irq_leave_protection(state);
     return -1;
 }
 

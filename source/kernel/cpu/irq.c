@@ -241,4 +241,13 @@ void do_handler_control_protection_exception(exception_frame_t * frame) {
     do_default_handler(frame, "control_protection_exception exception");
 }
 
+irq_state_t irq_enter_protection(void) {
+    irq_state_t state = read_eflags();
+    irq_disable_global();
+    return state;
+}
 
+
+void irq_leave_protection(irq_state_t state) {
+    write_eflags(state);
+}
