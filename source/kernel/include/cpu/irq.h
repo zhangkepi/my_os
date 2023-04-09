@@ -1,6 +1,8 @@
 #ifndef IRQ_H_
 #define IRQ_H_
 
+#include "comm/types.h"
+
 #define IRQ0_DE     0
 #define IRQ1_DB     1
 #define IRQ2_NMI    2
@@ -87,5 +89,9 @@ void exception_handler_control_protection_exception(void);
 
 
 void pic_send_eoi(int irq_num);
+
+typedef uint32_t irq_state_t;
+irq_state_t irq_enter_protection(void);
+void irq_leave_protection(irq_state_t state);
 
 #endif
