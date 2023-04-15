@@ -79,6 +79,30 @@ static inline void write_cr0(uint32_t v) {
     __asm__ __volatile__("mov %[v], %%cr0"::[v]"r"(v));
 }
 
+// 读取CR3寄存器
+static inline uint32_t read_cr3(void) {
+    uint32_t cr3;
+    __asm__ __volatile__("mov %%cr3, %[v]":[v]"=r"(cr3));
+    return cr3;
+}
+
+// 写入CR3
+static inline void write_cr3(uint32_t v) {
+    __asm__ __volatile__("mov %[v], %%cr3"::[v]"r"(v));
+}
+
+// 读取CR4寄存器
+static inline uint32_t read_cr4(void) {
+    uint32_t cr4;
+    __asm__ __volatile__("mov %%cr4, %[v]":[v]"=r"(cr4));
+    return cr4;
+}
+
+// 写入CR4
+static inline void write_cr4(uint32_t v) {
+    __asm__ __volatile__("mov %[v], %%cr4"::[v]"r"(v));
+}
+
 // 远跳转
 static inline void far_jmp(uint32_t selector, uint32_t offset) {
     uint32_t addr[] = {offset, selector};
@@ -102,5 +126,7 @@ static inline uint32_t read_eflags() {
 static inline void write_eflags(uint32_t eflags) {
     __asm__ __volatile__("push %%eax\n\tpopf"::"a"(eflags));
 }
+
+
 
 #endif

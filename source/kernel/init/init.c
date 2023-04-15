@@ -10,12 +10,15 @@
 #include "comm/cpu_instr.h"
 #include "tools/list.h"
 #include "ipc/sem.h"
+#include "core/memory.h"
 
 void kernel_init(boot_info_t * boot_info) {
 
     ASSERT(boot_info->ram_region_count > 0);
 
     cpu_init();
+
+    memory_init(boot_info);
 
     log_init();
     irq_init();
@@ -47,7 +50,7 @@ void init_main(void) {
     task_init(&init_task, "init_task", (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
     task_first_init();
 
-    sem_init(&sem, 0);
+    sem_init(&sem, 2);
 
     irq_enable_global();
 
