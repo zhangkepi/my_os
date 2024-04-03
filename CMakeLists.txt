@@ -8,12 +8,15 @@ set(CMAKE_VERBOSE_MAKEFILE on)   # 开启输出编译详细过程的提示
 # 目前mac和win上使用x86_64-elf-
 if (CMAKE_HOST_WIN32 OR CMAKE_HOST_APPLE)
     set(TOOL_PREFIX  "x86_64-elf-")
-elseif (CMAKE_HOST_WIN32)
+elseif (CMAKE_HOST_UNIX)
     set(TOOL_PREFIX  "x86_64-linux-gnu-")    # 待补充
 endif ()
 
 # set(TOOL_PREFIX  "x86_64-elf-")
 # set(TOOL_PREFIX  "i686-elf-")
+
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_VERSION "0.0.0")
 
 # C编译器与参数配置
 set(CMAKE_C_COMPILER "${TOOL_PREFIX}gcc") 

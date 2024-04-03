@@ -40,7 +40,7 @@ read_loader:
 	int $0x13
 	jc read_loader
 
-	jmp boot_entry
+	jmp boot_entry   # 因为不需要返回，用jmp指令即可，而不是call
 	
 	// 引导结束段
 	.section boot_end, "ax"
