@@ -3,6 +3,7 @@
 #include "cpu/irq.h"
 #include "cpu/cpu.h"
 #include "os_cfg.h"
+#include "tools/log.h"
 
 #define     IDT_TABLE_NR    128
 
@@ -11,7 +12,34 @@ void exception_handler_unknown(void);
 
 static gate_desc_t idt_table[IDT_TABLE_NR];
 
+
+static void dump_core_regs(exception_frame_t * frame) {
+    log_printf("IRQ: %d, error code: %d", frame->num, frame->err_code);
+
+    log_printf("CS: %d", frame->cs);
+    log_printf("DS: %d", frame->ds);
+    log_printf("ES: %d", frame->es);
+    log_printf("SS: %d", frame->ds);
+    log_printf("GS: %d", frame->gs);
+
+    log_printf("EAX: 0x%x", frame->eax);
+    log_printf("EBX: 0x%x", frame->ebx);
+    log_printf("ECX: 0x%x", frame->ecx);
+    log_printf("EDX: 0x%x", frame->edx);
+
+    log_printf("EDI: 0x%x", frame->edi);
+    log_printf("ESI: 0x%x", frame->esi);
+    log_printf("EBP: 0x%x", frame->ebp);
+    log_printf("ESP: 0x%x", frame->esp);
+
+    log_printf("EIP: 0x%x", frame->eip);
+    log_printf("EFLAGS: 0x%x", frame->eflags);
+}
+
 static void do_default_handler(exception_frame_t * frame, const char * message) {
+    log_printf("--------------------------------------------");
+    log_printf("IRQ/Exception happend: %s", message);
+    dump_core_regs(frame);
     for (; ; ) {
         hlt();
     }
@@ -169,6 +197,7 @@ void irq_enable(int irq_num) {
         uint8_t mask = inb(PIC0_IMR) & ~(1 << irq_num);
         outb(PIC0_IMR, mask);
     } else {
+        irq_num -= 8;
         uint8_t mask = inb(PIC1_IMR) & ~(1 << irq_num);
         outb(PIC1_IMR, mask);
     }
@@ -183,6 +212,7 @@ void irq_disable(int irq_num) {
         uint8_t mask = inb(PIC0_IMR) | (1 << irq_num);
         outb(PIC0_IMR, mask);
     } else {
+        irq_num -= 8;
         uint8_t mask = inb(PIC1_IMR) | (1 << irq_num);
         outb(PIC1_IMR, mask);
     }
