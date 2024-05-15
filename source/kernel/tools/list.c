@@ -76,6 +76,8 @@ list_node_t * list_remove(list_t * list, list_node_t * remove_node) {
 
     remove_node->next = remove_node->pre = (list_node_t *)0;
 
+    list->count--;
+
     return remove_node;
 }
 

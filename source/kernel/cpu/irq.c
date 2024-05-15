@@ -54,79 +54,79 @@ void do_handler_divider(exception_frame_t * frame) {
 }
 
 void do_handler_debug(exception_frame_t * frame) {
-    do_default_handler(frame, "debug zero exception");
+    do_default_handler(frame, "debug exception");
 }
 
 void do_handler_NMI(exception_frame_t * frame) {
-    do_default_handler(frame, "NMI zero exception");
+    do_default_handler(frame, "NMI exception");
 }
 
 void do_handler_breakpoint(exception_frame_t * frame) {
-    do_default_handler(frame, "breakpoint zero exception");
+    do_default_handler(frame, "breakpoint exception");
 }
 
 void do_handler_overflow(exception_frame_t * frame) {
-    do_default_handler(frame, "overflow zero exception");
+    do_default_handler(frame, "overflow exception");
 }
 
 void do_handler_bound_range(exception_frame_t * frame) {
-    do_default_handler(frame, "bound_range zero exception");
+    do_default_handler(frame, "bound_range exception");
 }
 
 void do_handler_invalid_opcode(exception_frame_t * frame) {
-    do_default_handler(frame, "invalid_opcode zero exception");
+    do_default_handler(frame, "invalid_opcode exception");
 }
 
 void do_handler_device_unavabliable(exception_frame_t * frame) {
-    do_default_handler(frame, "device_unavabliable zero exception");
+    do_default_handler(frame, "device_unavabliable exception");
 }
 
 void do_handler_double_fault(exception_frame_t * frame) {
-    do_default_handler(frame, "double_fault zero exception");
+    do_default_handler(frame, "double_fault exception");
 }
 
 void do_handler_invalid_tss(exception_frame_t * frame) {
-    do_default_handler(frame, "invalid_tss zero exception");
+    do_default_handler(frame, "invalid_tss exception");
 }
 
 void do_handler_segment_not_present(exception_frame_t * frame) {
-    do_default_handler(frame, "segment_not_present zero exception");
+    do_default_handler(frame, "segment_not_present exception");
 }
 
 void do_handler_stack_segment_fault(exception_frame_t * frame) {
-    do_default_handler(frame, "stack_segment_fault zero exception");
+    do_default_handler(frame, "stack_segment_fault exception");
 }
 
 void do_handler_general_protection(exception_frame_t * frame) {
-    do_default_handler(frame, "general_protection zero exception");
+    do_default_handler(frame, "general_protection exception");
 }
 
 void do_handler_page_fault(exception_frame_t * frame) {
-    do_default_handler(frame, "page_fault zero exception");
+    do_default_handler(frame, "page_fault exception");
 }
 
 void do_handler_fpu_error(exception_frame_t * frame) {
-    do_default_handler(frame, "fpu_error zero exception");
+    do_default_handler(frame, "fpu_error exception");
 }
 
 void do_handler_alignment_check(exception_frame_t * frame) {
-    do_default_handler(frame, "alignment_check zero exception");
+    do_default_handler(frame, "alignment_check exception");
 }
 
 void do_handler_machine_check(exception_frame_t * frame) {
-    do_default_handler(frame, "machine_check zero exception");
+    do_default_handler(frame, "machine_check exception");
 }
 
 void do_handler_simd_excepton(exception_frame_t * frame) {
-    do_default_handler(frame, "simd_excepton zero exception");
+    do_default_handler(frame, "simd_excepton exception");
 }
 
 void do_handler_virtual_exception(exception_frame_t * frame) {
-    do_default_handler(frame, "virtual_exception zero exception");
+    do_default_handler(frame, "virtual_exception exception");
 }
 
 void do_handler_control_exception(exception_frame_t * frame) {
-    do_default_handler(frame, "control_exception zero exception");
+    do_default_handler(frame, "control_exception exception");
 }
 
 
@@ -233,4 +233,16 @@ void pic_send_eoi(int irq_num) {
     }
     outb(PIC0_OCW2, PIC_OCW2_EOI);
 }
+
+irq_state_t irq_enter_protection(void) {
+    irq_state_t state = read_eflags();
+    irq_disable_global();
+    return state;
+}
+
+
+void irq_leave_protection(irq_state_t state) {
+    write_eflags(state);
+}
+
 

@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include "cpu/irq.h"
 #include "tools/log.h"
 #include "comm/cpu_instr.h"
 #include "tools/klib.h"
@@ -25,6 +26,8 @@ void log_printf(const char * fmt, ...) {
     kernel_vsprintf(str_buff, fmt, args);
     va_end(args);
 
+    irq_state_t state = irq_enter_protection();
+
     const char * p = str_buff;
     while (*p != '\0') {
         while ((inb(COM1_PORT + 5) & (1 << 6)) == 0);
@@ -32,5 +35,7 @@ void log_printf(const char * fmt, ...) {
     }
     outb(COM1_PORT, '\r');
     outb(COM1_PORT, '\n');
+
+    irq_leave_protection(state);
 }
 

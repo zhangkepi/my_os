@@ -52,7 +52,7 @@ list_node_t * list_remove(list_t * list, list_node_t * remove_node);
 
 
 #define offset_in_parent(parent_type, filed_name)   \
-    ((uint32_t)(&(((parent_type *)0)->field_name)))
+    ((uint32_t)&(((parent_type *)0)->filed_name))
 
 #define parent_addr(field_addr, parent_type, filed_name) \
     (uint32_t)((uint32_t)field_addr - offset_in_parent(parent_type, filed_name))

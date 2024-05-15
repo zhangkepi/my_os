@@ -15,6 +15,7 @@ void kernel_init(boot_info_t * boot_info) {
     log_init();
     irq_init();
     time_init();
+    task_manager_init();
 }
 
 static task_t first_task;
@@ -25,7 +26,7 @@ void init_task_entry(void) {
     int count = 0;
     for (; ;) {
         log_printf("init task: %d", count++);
-        task_switch_from_to(&init_task, &first_task);
+        sys_sleep(1000);
     }
 }
 
@@ -34,15 +35,15 @@ void init_main(void) {
     log_printf("Version: %s %s", OS_VERSION, "diyx86 os");
     log_printf("%d %d %x %c", -123, 12345, 0x12345, 'a');
 
-    task_init(&init_task, (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
-    task_init(&first_task, 0, 0);
+    task_init(&init_task, "init task", (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
+    task_first_init();
 
-    // write_tr(first_task.tss_sel);
+    irq_enable_global();
     
     int count = 0;
     for (; ;) {
-        log_printf("init main: %d", count++);
-        task_switch_from_to(&first_task, &init_task);
+        sys_sleep(1000);
+        log_printf("first task: %d", count++);
     }
 }
 
