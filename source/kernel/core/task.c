@@ -41,6 +41,7 @@ int task_init(task_t * task, char * name, uint32_t entry, uint32_t esp) {
 
     list_node_init(&task->run_node);
     list_node_init(&task->all_node);
+    list_node_init(&task->wait_node);
 
     task->state = TASK_CREATED;
     task->time_ticks = TASK_TIME_SLICE_DEFAULT;
