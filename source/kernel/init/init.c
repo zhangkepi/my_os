@@ -1,5 +1,6 @@
 #include "init.h"
 #include "comm/cpu_instr.h"
+#include "core/memory.h"
 #include "core/task.h"
 #include "cpu/irq.h"
 #include "dev/time.h"
@@ -13,6 +14,7 @@ void kernel_init(boot_info_t * boot_info) {
     ASSERT(boot_info->ram_region_count != 0);
 
     cpu_init();
+    memory_init(boot_info);
     log_init();
     irq_init();
     time_init();

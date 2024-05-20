@@ -5,6 +5,14 @@
 #include "comm/types.h"
 
 
+static inline uint32_t down2(uint32_t size, uint32_t bound) {
+    return size & ~(bound - 1);
+}
+
+static inline uint32_t up2(uint32_t size, uint32_t bound) {
+    return (size + bound - 1) & ~(bound - 1);
+}
+
 void kernel_strcpy(char * src, char * dest);
 void kernel_strncpy(char * src, char * dest, int size);
 int kernel_strncmp(const char * s1, const char * s2, int size);

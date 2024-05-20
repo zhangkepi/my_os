@@ -59,6 +59,7 @@ void segment_desc_set (int selector, uint32_t base, uint32_t limit, uint16_t att
 void gate_desc_set (gate_desc_t * desc, uint16_t selector, uint32_t offset, uint16_t attr);
 void cpu_init(void);
 int gdt_alloc_desc(void);
+void gdt_free_desc(int sel);
 void switch_to_tss(int tss_sel);
 
 #endif

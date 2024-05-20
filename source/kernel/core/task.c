@@ -1,4 +1,5 @@
 #include "core/task.h"
+#include "core/memory.h"
 #include "cpu/cpu.h"
 #include "cpu/irq.h"
 #include "os_cfg.h"
@@ -32,6 +33,14 @@ static int tss_init(task_t * task, uint32_t entry, uint32_t esp) {
     task->tss.cs = KERNEL_SELECTOR_CS;
     task->tss.eflags = EFLAGS_DEFAULT | EFLAGS_IF;
     task->tss_sel = tss_sel;
+
+    uint32_t page_dir = memory_create_uvm();
+    if (page_dir == 0) {
+        gdt_free_desc(tss_sel);
+        return -1;
+    }
+    task->tss.cr3 = page_dir;
+
     return 0;
 }
 

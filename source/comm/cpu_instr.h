@@ -35,6 +35,30 @@ static inline void write_cr0(uint32_t data) {
     __asm__ __volatile__("mov %[v], %%cr0"::[v]"r"(data):);
 }
 
+// 读取cr3寄存器的值
+static inline uint32_t read_cr3(void) {
+    uint32_t cr3;
+    __asm__ __volatile__("mov %%cr3, %[v]":[v]"=r"(cr3));
+    return cr3;
+}
+
+// 向cr3寄存器写入值
+static inline void write_cr3(uint32_t data) {
+    __asm__ __volatile__("mov %[v], %%cr3"::[v]"r"(data):);
+}
+
+// 读取cr4寄存器的值
+static inline uint32_t read_cr4(void) {
+    uint32_t cr4;
+    __asm__ __volatile__("mov %%cr4, %[v]":[v]"=r"(cr4));
+    return cr4;
+}
+
+// 向cr4寄存器写入值
+static inline void write_cr4(uint32_t data) {
+    __asm__ __volatile__("mov %[v], %%cr4"::[v]"r"(data):);
+}
+
 
 // 加载gdt表
 static inline void lgdt(uint32_t start, uint32_t size) {
