@@ -35,6 +35,19 @@ static inline void write_cr0(uint32_t data) {
     __asm__ __volatile__("mov %[v], %%cr0"::[v]"r"(data):);
 }
 
+// 读取cr2寄存器的值
+static inline uint32_t read_cr2(void) {
+    uint32_t cr2;
+    __asm__ __volatile__("mov %%cr2, %[v]":[v]"=r"(cr2));
+    return cr2;
+}
+
+// 向cr2寄存器写入值
+static inline void write_cr2(uint32_t data) {
+    __asm__ __volatile__("mov %[v], %%cr2"::[v]"r"(data):);
+}
+
+
 // 读取cr3寄存器的值
 static inline uint32_t read_cr3(void) {
     uint32_t cr3;
