@@ -55,6 +55,7 @@ typedef struct _tss_t{
 #define     GATE_DPL0           (0 << 13)
 #define     GATE_DPL3           (3 << 13)
 #define     GATE_TYPE_INT       (0xE << 8)
+#define     GATE_TYPE_SYSCALL   (0xC << 8)
 
 
 void segment_desc_set (int selector, uint32_t base, uint32_t limit, uint16_t attr);

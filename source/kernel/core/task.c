@@ -79,6 +79,7 @@ int task_init(task_t * task, char * name, int flag, uint32_t entry, uint32_t esp
     task->slice_ticks = task->time_ticks;
     kernel_strncpy(name, task->name, TASK_NAME_SIZE);
     task->sleep_ticks = 0;
+    task->pid = (uint32_t)task;
 
     irq_state_t state = irq_enter_protection();
     task_set_ready(task);
@@ -241,4 +242,9 @@ void sys_sleep(uint32_t ms) {
     task_dispatch();
 
     irq_leave_protection(state);
+}
+
+int sys_getpid(void) {
+    task_t * curr_task = task_current();
+    return curr_task->pid;
 }
