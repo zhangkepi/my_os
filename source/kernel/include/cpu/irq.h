@@ -30,15 +30,15 @@
 
 #define     PIC0_ICW1       0x20
 #define     PIC0_ICW2       0x21
-#define     PIC0_ICW3       0x22
-#define     PIC0_ICW4       0x23
+#define     PIC0_ICW3       0x21
+#define     PIC0_ICW4       0x21
 #define     PIC0_IMR        0x21
 #define     PIC0_OCW2       0x20
 
 #define     PIC1_ICW1       0xA0
 #define     PIC1_ICW2       0xA1
-#define     PIC1_ICW3       0xA2
-#define     PIC1_ICW4       0xA3
+#define     PIC1_ICW3       0xA1
+#define     PIC1_ICW4       0xA1
 #define     PIC1_IMR        0xA1
 #define     PIC1_OCW2       0xA0
 

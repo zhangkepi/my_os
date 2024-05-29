@@ -63,4 +63,28 @@ static inline void print_msg(const char * fmt, int arg) {
     sys_call(&args);
 }
 
+static inline int fork(void) {
+    syscall_args_t args;
+    args.id = SYS_fork;
+
+    return sys_call(&args);
+}
+
+static inline int execve(const char * name, char * const * argv, char * const * env) {
+    syscall_args_t args;
+    args.id = SYS_execve;
+    args.args0 = (int)name;
+    args.args1 = (int)argv;
+    args.args2 = (int)env;
+
+    return sys_call(&args);
+}
+
+static inline int yield(void) {
+    syscall_args_t args;
+    args.id = SYS_yield;
+
+    return sys_call(&args);
+}
+
 #endif

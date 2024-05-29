@@ -6,6 +6,9 @@
 #define     SYS_sleep               0
 #define     SYS_getpid              1
 #define     SYS_printmsg            2
+#define     SYS_fork                3
+#define     SYS_execve              4
+#define     SYS_yield               5
 #define     SYSCALL_PARAM_COUNT     5
 
 typedef struct _syscall_frame_t{

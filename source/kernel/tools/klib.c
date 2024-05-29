@@ -181,3 +181,29 @@ void pannic(const char * file, int line, const char * func, const char * cond) {
         hlt();
     }
 }
+
+int strings_count(char ** start) {
+    int count = 0;
+    if (start) {
+        while (*start++) {
+            count++;
+        }
+    }
+    return count;
+}
+
+
+char * get_file_name(char * path_name) {
+    char * s = path_name;
+
+    while (*s != '\0') {
+        s++;
+    }
+
+    while ((*s != '/') && (*s != '\\') && (s >= path_name)) {
+        s--;
+    }
+
+    return s+1;
+}
+

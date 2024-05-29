@@ -198,3 +198,90 @@ void memory_free_page(uint32_t addr) {
         pte->v = 0;
     }
 }
+
+uint32_t memory_copy_uvm(uint32_t page_dir) {
+    uint32_t to_page_dir = memory_create_uvm();
+    if (to_page_dir == 0) {
+        goto copy_uvm_failed;
+    }
+
+    uint32_t user_pde_start = pde_index(MEM_TASK_BASE);
+    pde_t * src_pde = (pde_t *)page_dir + user_pde_start;
+    for (int i = user_pde_start; i < PDE_CNT; i++, src_pde++) {
+        if (!src_pde->present) {
+            continue;
+        }
+        pte_t * src_pte = (pte_t *)pde_paddr(src_pde);
+        for (int j = 0; j < PTE_CNT; j++, src_pte++) {
+            if (!src_pte->present) {
+                continue;
+            }
+            
+            uint32_t page = addr_alloc_page(&paddr_aloc, 1);
+            if (page == 0) {
+                goto copy_uvm_failed;
+            }
+
+            uint32_t vaddr = (i << 22) | (j << 12);
+            int err = memory_create_map((pde_t *)to_page_dir, vaddr, page, 1, get_pte_perm(src_pte));
+            if (err < 0) {
+                goto copy_uvm_failed;
+            }
+            kernel_memcpy((void *)vaddr, (void *)page, MEM_PAGE_SIZE);
+        }
+    }
+
+    return to_page_dir;
+copy_uvm_failed:
+    if (to_page_dir) {
+        memory_destroy_uvm(to_page_dir);
+    }
+    return -1;
+}
+
+
+void memory_destroy_uvm(uint32_t page_dir) {
+    uint32_t user_pde_start = pde_index(MEM_TASK_BASE);
+    pde_t * pde = (pde_t *)page_dir + user_pde_start;
+    for (int i = user_pde_start; i < PDE_CNT; i++, pde++) {
+        if (!pde->present) {
+            continue;
+        }
+        pte_t * pte = (pte_t *)pde_paddr(pde);
+        for (int j = 0; j < PTE_CNT; j++, pte++) {
+            if (!pte->present) {
+                continue;
+            }
+            addr_free_page(&paddr_aloc, pte_paddr(pte), 1);
+        }
+        addr_free_page(&paddr_aloc, pde_paddr(pde), 1);
+    }
+    addr_free_page(&paddr_aloc, page_dir, 1);
+}
+
+uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr) {
+    pte_t * pte = find_pte((pde_t *)page_dir, vaddr, 0);
+    if (!pte) {
+        return 0;
+    }
+    return pte_paddr(pte) + (vaddr & (MEM_PAGE_SIZE - 1));
+}
+
+int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t size) {
+    while (size > 0) {
+        uint32_t to_paddr = memory_get_paddr(page_dir, to);
+        if (to_paddr <= 0) {
+            return -1;
+        }
+        uint32_t offset_in_page = to_paddr & (MEM_PAGE_SIZE - 1);
+        uint32_t curr_size = MEM_PAGE_SIZE - offset_in_page;
+        if (curr_size > size) {
+            curr_size = size;
+        }
+        kernel_memcpy((void *)from, (void *)to_paddr, curr_size);
+        size -= curr_size;
+        to += curr_size;
+        from += curr_size;
+    }
+    return 0;
+}

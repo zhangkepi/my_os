@@ -22,6 +22,8 @@ typedef struct _task_t {
 
     int pid;
 
+    struct _task_t * parent;
+
     int sleep_ticks;
     int time_ticks;
     int slice_ticks;
@@ -33,6 +35,12 @@ typedef struct _task_t {
     tss_t tss;
     int tss_sel;
 }task_t;
+
+typedef struct _task_args_t {
+    uint32_t ret_addr;
+    int argc;
+    char ** argv;
+}task_args_t;
 
 typedef struct _task_manager_t {
 
@@ -60,12 +68,14 @@ void task_set_ready(task_t * task);
 void task_set_block(task_t * task);
 task_t * task_next_run(void);
 task_t * task_current(void);
-int sys_sched_yield(void);
+int sys_yield(void);
 void task_dispatch(void);
 void task_time_tick(void);
 void task_set_sleep(task_t * task, uint32_t ticks);
 void task_set_wakeup(task_t * task);
 void sys_sleep(uint32_t ms);
 int sys_getpid(void);
+int sys_fork(void);
+int sys_execve(char * name, char ** array, char ** env);
 
 #endif
