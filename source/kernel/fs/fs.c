@@ -3,6 +3,7 @@
 #include "comm/cpu_instr.h"
 #include "comm/boot_info.h"
 #include "tools/klib.h"
+#include "tools/log.h"
 
 #define     TEMP_FILE_ID        100
 
@@ -64,7 +65,9 @@ int sys_read(int file, char * ptr, int len) {
 
 
 int sys_write(int file, char * ptr, int len) {
-    return -1;
+    ptr[len] = '\0';
+    log_printf("%s", ptr);
+    return 0;
 }
 
 int sys_lseek(int file, int ptr, int dir) {
@@ -78,4 +81,12 @@ int sys_lseek(int file, int ptr, int dir) {
 
 int sys_close(int file) {
     return 0;
+}
+
+int sys_isatty(int file) {
+    return -1;
+}
+
+int sys_fstat(int file, struct stat * st) {
+    return -1;
 }
