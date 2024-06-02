@@ -25,7 +25,8 @@
 #define     IRQ20_VE    20
 #define     IRQ21_CP    21
 
-#define     IRQ0_TIMER  0x20
+#define     IRQ0_TIMER      0x20
+#define     IRQ1_KEYBOARD   0x21
 
 
 #define     PIC0_ICW1       0x20

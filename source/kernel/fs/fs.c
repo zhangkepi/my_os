@@ -2,6 +2,7 @@
 #include "comm/types.h"
 #include "comm/cpu_instr.h"
 #include "comm/boot_info.h"
+#include "dev/console.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -65,8 +66,9 @@ int sys_read(int file, char * ptr, int len) {
 
 
 int sys_write(int file, char * ptr, int len) {
-    ptr[len] = '\0';
-    log_printf("%s", ptr);
+    if (file == 1) {
+        console_write(0, ptr, len);
+    }
     return 0;
 }
 
