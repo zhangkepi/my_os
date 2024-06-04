@@ -2,6 +2,7 @@
 #include "comm/cpu_instr.h"
 #include "cpu/irq.h"
 #include "dev/tty.h"
+#include "ipc/mutex.h"
 #include "ipc/sem.h"
 #include "sys/_intsup.h"
 #include "comm/types.h"
@@ -312,6 +313,8 @@ int console_init(int idx) {
     console->old_cursor_col = console->cursor_col;
     console->old_cursor_row = console->cursor_row;
 
+    mutex_init(&console->mutex);
+
     return 0;
 }
 
@@ -320,6 +323,7 @@ int console_write(tty_t * tty) {
     console_t * con = console_buf + tty->console_idx;
     int len = 0;
 
+    mutex_lock(&con->mutex);
     do {
         char c;
         int err = tty_fifo_get(&tty->ofifo, &c);
@@ -349,7 +353,7 @@ int console_write(tty_t * tty) {
     if (tty->console_idx == curr_console_idx) {
         update_cursor_pos(con);
     }
-    
+    mutex_unlock(&con->mutex);
     return len;
 }
 

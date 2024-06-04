@@ -38,4 +38,10 @@ void file_free(file_t * file) {
     mutex_unlock(&file_alloc_mutex);
 }
 
+void file_inc_ref(file_t * file) {
+    mutex_lock(&file_alloc_mutex);
+    file->ref++;
+    mutex_unlock(&file_alloc_mutex);
+}
+
 

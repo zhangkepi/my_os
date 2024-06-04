@@ -9,6 +9,7 @@
 #include "fs/fs.h"
 #include "ipc/mutex.h"
 #include "os_cfg.h"
+#include "sys/_intsup.h"
 #include "tools/klib.h"
 #include "core/task.h"
 #include "tools/list.h"
@@ -121,6 +122,7 @@ int task_init(task_t * task, char * name, int flag, uint32_t entry, uint32_t esp
     task->parent = (task_t *)0;
     task->heap_start = 0;
     task->heap_end = 0;
+    task->status = 0;
 
     irq_state_t state = irq_enter_protection();
     list_insert_last(&task_manager.task_list, &task->all_node);
@@ -337,6 +339,17 @@ static void free_task(task_t * task) {
     mutex_unlock(&task_table_mutex);
 }
 
+static void copy_opened_files(task_t * child_task) {
+    task_t * parent = task_current();
+    for (int i = 0; i < TASK_OFILE_NR; i++) {
+        file_t * file = parent->file_table[i];
+        if (file) {
+            file_inc_ref(file);
+            child_task->file_table[i] = file;
+        }
+    }
+}
+
 int sys_fork(void) {
     task_t * parent_task = task_current();
     task_t * child_task = alloc_task();
@@ -352,6 +365,8 @@ int sys_fork(void) {
     if (err < 0) {
         goto fork_failed;
     }
+
+    copy_opened_files(child_task);
 
     tss_t * tss = &child_task->tss;
     tss->eax = 0;
@@ -538,4 +553,77 @@ exec_failed:
         memory_destroy_uvm(new_page_dir);
     }
     return -1;
+}
+
+void sys_exit(int status) {
+    task_t * curr_task = task_current();
+
+    for (int fd = 0; fd < TASK_OFILE_NR; fd++) {
+        file_t * p_file = curr_task->file_table[fd];
+        if (p_file) {
+            sys_close(fd);
+            curr_task->file_table[fd] = (file_t *)0;
+        }
+    }
+
+    int move_child = 0;
+    mutex_lock(&task_table_mutex);
+    for (int i = 0; i < TASK_NR; i++) {
+        task_t * task = task_table + i;
+        if (task->parent == curr_task) {
+            task->parent = &task_manager.first_task;
+            if (task->state == TASK_ZOMBIE) {
+                move_child = 1;
+            }
+        }
+    }
+    mutex_unlock(&task_table_mutex);
+
+    irq_state_t state = irq_enter_protection();
+    task_t * parent = curr_task->parent;
+    if (move_child && parent != &task_manager.first_task) {
+        if (task_manager.first_task.state == TASK_WAITTING) {
+            task_set_ready(&task_manager.first_task);
+        }
+    }
+    if (parent->state == TASK_WAITTING) {
+        task_set_ready(parent);
+    }
+    curr_task->status = status;
+    curr_task->state = TASK_ZOMBIE;
+    task_set_block(curr_task);
+    task_dispatch();
+    irq_leave_protection(state);
+}
+
+int sys_wait(int * status) {
+    task_t * curr_task = task_current();
+
+    for (;;) {
+        mutex_lock(&task_table_mutex);
+        for (int i = 0; i < TASK_NR; i++) {
+            task_t * task = task_table + i;
+            if (task->parent != curr_task) {
+                continue;
+            }
+            if (task->state == TASK_ZOMBIE) {
+                int pid = task->pid;
+                *status = task->status;
+
+                memory_destroy_uvm(task->tss.cr3);
+                memory_free_page(task->tss.esp0 - MEM_PAGE_SIZE);
+                kernel_memset(task, 0, sizeof(task_t));
+
+                mutex_unlock(&task_table_mutex);
+                return pid;
+            }
+        }
+        mutex_unlock(&task_table_mutex);
+        irq_state_t state = irq_enter_protection();
+        task_set_block(curr_task);
+        curr_task->state = TASK_WAITTING;
+        task_dispatch();
+        irq_leave_protection(state);
+    }
+    return 0;
 }

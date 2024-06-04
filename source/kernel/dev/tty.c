@@ -77,8 +77,6 @@ int tty_open(device_t * dev) {
     console_init(tty->console_idx);
     keyboard_init();
 
-
-
     return 0;
 }
 
@@ -128,6 +126,13 @@ int tty_read(device_t * dev, int addr, char * buf, int size) {
         tty_fifo_get(&tty->ififo, &c);
 
         switch (c) {
+            case 0x7F:
+                if (len == 0) {
+                    continue;
+                }
+                len--;
+                p_buf--;
+                break;
             case '\n':
                 if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {
                     *p_buf++ = '\r';

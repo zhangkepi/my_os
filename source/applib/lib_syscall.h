@@ -1,6 +1,7 @@
 #ifndef LIB_SYSCALL_H
 #define LIB_SYSCALL_H
 
+#include "sys/_intsup.h"
 #include <sys/stat.h>
 
 typedef struct _syscall_args_t {
@@ -28,5 +29,7 @@ int fstat(int file, struct stat * stat);
 void * sbrk(ptrdiff_t inc);
 
 int dup(int file);
+void _exit(int status);
+int wait(int * status);
 
 #endif
