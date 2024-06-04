@@ -1,17 +1,24 @@
 #include "dev/console.h"
 #include "comm/cpu_instr.h"
+#include "cpu/irq.h"
+#include "dev/tty.h"
+#include "ipc/sem.h"
 #include "sys/_intsup.h"
 #include "comm/types.h"
 #include "tools/klib.h"
 
 
-#define CONSOLE_NR      1
+#define CONSOLE_NR      8
 
 static console_t console_buf[CONSOLE_NR];
+static int curr_console_idx = 0;
 
 
 
 static int read_cursor_pos(void) {
+
+    irq_state_t state = irq_enter_protection();
+
     int pos;
 
     outb(0x3D4, 0xF);
@@ -19,17 +26,24 @@ static int read_cursor_pos(void) {
     outb(0x3D4, 0xE);
     pos |= (inb(0x3D5) << 8);
 
+    irq_leave_protection(state);
+
     return pos;
 }
 
 static int update_cursor_pos(console_t * console) {
 
-    uint16_t pos = console->cursor_row * console->display_cols + console->cursor_col;
+    irq_state_t state = irq_enter_protection();
 
-    outb(0x3D4, 0xF);
+    uint16_t pos = (console - console_buf) * console->display_rows * console->display_cols;
+    pos += console->cursor_row * console->display_cols + console->cursor_col;
+
+    outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(pos & 0xFF));
-    outb(0x3D4, 0xE);
+    outb(0x3D4, 0x0E);
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+
+    irq_leave_protection(state);
 
     return pos;
 }
@@ -100,9 +114,11 @@ static int move_backword(console_t * console, int n) {
             status = 0;
         } else if (console->cursor_row > 0) {
             console->cursor_row--;
-            console->cursor_col = console->display_cols;
+            console->cursor_col = console->display_cols - 1;
+            status = 0;
         }
     }
+    return status;
 }
 
 static void erase_backword(console_t * console) {
@@ -146,10 +162,9 @@ static void write_normal(console_t * console, char c) {
                 move_backword(console, 1);
                 break;
             case '\r':
-                move_to_col0(0);
+                move_to_col0(console);
                 break;
             case '\n':
-                move_to_col0(console);
                 move_next_line(console);
                 break;
             default:
@@ -269,35 +284,51 @@ static void write_esc_square(console_t * console, char c) {
     }
 }
 
-int console_init(void) {
-    for (int i = 0; i < CONSOLE_NR; i++) {
-        console_t * console = console_buf + i;
-        console->display_rows = CONSOLE_ROW_MAX;
-        console->display_cols = CONSOLE_COL_MAX;
+int console_init(int idx) {
 
+    console_t * console = console_buf + idx;
+    console->display_rows = CONSOLE_ROW_MAX;
+    console->display_cols = CONSOLE_COL_MAX;
+
+    console->foreground = COLOR_White;
+    console->background = COLOR_Black;
+
+    console->write_state = CONSOLE_WRITE_NORMAL;
+
+    console->disp_base = (disp_char_t *)CONSOLE_DISP_ADDR + idx * (CONSOLE_ROW_MAX * CONSOLE_COL_MAX);
+
+    if (idx == 0) {
         int curr_pos = read_cursor_pos();
         console->cursor_row = curr_pos / console->display_cols;
         console->cursor_col = curr_pos % console->display_cols;
-        console->foreground = COLOR_White;
-        console->background = COLOR_Black;
-        console->old_cursor_col = 0;
-        console->old_cursor_row = 0;
-        console->write_state = CONSOLE_WRITE_NORMAL;
-        console->disp_base = (disp_char_t *)CONSOLE_DISP_ADDR + i * (CONSOLE_ROW_MAX * CONSOLE_COL_MAX);
-
-        // clear_display(console);
+        update_cursor_pos(console);
+    } else {
+        console->cursor_row = 0;
+        console->cursor_col = 0;
+        clear_display(console);
+        //update_cursor_pos(console);
     }
+    
+    console->old_cursor_col = console->cursor_col;
+    console->old_cursor_row = console->cursor_row;
+
     return 0;
 }
 
 
+int console_write(tty_t * tty) {
+    console_t * con = console_buf + tty->console_idx;
+    int len = 0;
 
-int console_write(int console, char * data, int size) {
-    console_t * con = console_buf + console;
-    int len;
+    do {
+        char c;
+        int err = tty_fifo_get(&tty->ofifo, &c);
+        if (err < 0) {
+            break;
+        }
 
-    for (len = 0; len < size; len++) {
-        char c = *data++;
+        sem_notify(&tty->osem);
+
         switch (con->write_state) {
             case CONSOLE_WRITE_NORMAL:
                 write_normal(con, c);
@@ -311,14 +342,36 @@ int console_write(int console, char * data, int size) {
             default:
                 break;
         }
-    }
 
-    update_cursor_pos(con);
+        len++;
+    }while (1);
+
+    if (tty->console_idx == curr_console_idx) {
+        update_cursor_pos(con);
+    }
+    
     return len;
 }
 
 
 void console_close(int console) {
 
+}
+
+void console_select(int idx) {
+    console_t * console = console_buf + idx;
+    if (console->disp_base == 0) {
+        console_init(idx);
+    }
+
+    uint16_t pos = idx * console->display_cols * console->display_rows;
+    outb(0x3D4, 0xC);
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    outb(0x3D4, 0xD);
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+
+    curr_console_idx = idx;
+
+    update_cursor_pos(console);
 }
 

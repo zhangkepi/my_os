@@ -2,6 +2,7 @@
 #include "comm/cpu_instr.h"
 #include "cpu/irq.h"
 #include "comm/types.h"
+#include "dev/tty.h"
 #include "sys/_intsup.h"
 #include "tools/klib.h"
 #include "tools/log.h"
@@ -21,7 +22,7 @@ static const key_map_t map_table[] = {
         [0x0B] = {'0', ')'},
         [0x0C] = {'-', '_'},
         [0x0D] = {'=', '+'},
-        [0x0E] = {'\b', '\b'},
+        [0x0E] = {0x7F, 0x7F},
         [0x0F] = {'\t', '\t'},
         [0x10] = {'q', 'Q'},
         [0x11] = {'w', 'W'},
@@ -70,6 +71,13 @@ static inline char get_key(uint8_t key_code) {
     return key_code & 0x7f;
 }
 
+static void do_fx_key(int key) {
+    int idx = key - KEY_F1;
+    if (keyboard_state.lctrl_press || keyboard_state.rctrl_press) {
+        tty_select(idx);
+    }
+}
+
 static void do_normal_key(uint8_t raw_code) {
     char key = get_key(raw_code);
     int is_make = make_code(raw_code);
@@ -92,27 +100,18 @@ static void do_normal_key(uint8_t raw_code) {
             keyboard_state.lctrl_press = is_make;
             break;
         case KEY_F1:
-            break;
         case KEY_F2:
-            break;
         case KEY_F3:
-            break;
         case KEY_F4:
-            break;
         case KEY_F5:
-            break;
         case KEY_F6:
-            break;
         case KEY_F7:
-            break;
         case KEY_F8:
+            do_fx_key(key);
             break;
         case KEY_F9:
-            break;
         case KEY_F10:
-            break;
         case KEY_F11:
-            break;
         case KEY_F12:
             break;
         default:
@@ -128,7 +127,7 @@ static void do_normal_key(uint8_t raw_code) {
                         key = map_table[key].func;
                     }
                 }
-                log_printf("row code: %d, key: %c", raw_code, key);
+                tty_in(key);
             }
             break;
     }
@@ -149,9 +148,13 @@ static void do_e0_key(uint8_t raw_code) {
 }
 
 void keyboard_init(void) {
-    kernel_memset(&keyboard_state, 0, sizeof(keyboard_state));
-    irq_install(IRQ1_KEYBOARD, (irq_handler_t)exception_handler_keyboard);
-    irq_enable(IRQ1_KEYBOARD);
+    static int inited = 0;
+    if (!inited) {
+        kernel_memset(&keyboard_state, 0, sizeof(keyboard_state));
+        irq_install(IRQ1_KEYBOARD, (irq_handler_t)exception_handler_keyboard);
+        irq_enable(IRQ1_KEYBOARD);
+        inited = 1;
+    }
 }
 
 void do_handler_keyboard(exception_frame_t * frame) {

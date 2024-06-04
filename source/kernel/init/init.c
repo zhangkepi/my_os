@@ -6,6 +6,7 @@
 #include "dev/console.h"
 #include "dev/keyboard.h"
 #include "dev/time.h"
+#include "fs/fs.h"
 #include "ipc/sem.h"
 #include "tools/klib.h"
 #include "tools/log.h"
@@ -16,13 +17,12 @@ void kernel_init(boot_info_t * boot_info) {
     ASSERT(boot_info->ram_region_count != 0);
 
     cpu_init();
-    log_init();
-    console_init();
-    memory_init(boot_info);
     irq_init();
+    log_init();
+    memory_init(boot_info);
+    fs_init();
     time_init();
     task_manager_init();
-    keyboard_init();
 }
 
 void move_to_first_task(void) {

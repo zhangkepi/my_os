@@ -27,4 +27,6 @@ int isatty(int file);
 int fstat(int file, struct stat * stat);
 void * sbrk(ptrdiff_t inc);
 
+int dup(int file);
+
 #endif

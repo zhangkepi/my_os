@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include "cpu/irq.h"
 #include "dev/console.h"
+#include "dev/dev.h"
 #include "ipc/mutex.h"
 #include "tools/log.h"
 #include "comm/cpu_instr.h"
@@ -12,10 +13,14 @@
 #define     COM1_PORT       0x3F8
 
 
+static int log_dev_id;
+
 static mutex_t mutex;
 
 void log_init(void) {
     mutex_init(&mutex);
+
+    log_dev_id = dev_open(DEV_TTY, 0, (void *)0);
 
 #if LOG_USE_COM
     outb(COM1_PORT + 1, 0x00);
@@ -26,8 +31,6 @@ void log_init(void) {
     outb(COM1_PORT + 2, 0xc7);
     outb(COM1_PORT + 4, 0x0F);
 #endif
-
-
 }
 
 void log_printf(const char * fmt, ...) {
@@ -52,9 +55,11 @@ void log_printf(const char * fmt, ...) {
     outb(COM1_PORT, '\n');
 
 #else
-    console_write(0, str_buff, kernel_strlen(str_buff));
+    // console_write(0, str_buff, kernel_strlen(str_buff));
+    dev_write(log_dev_id, 0, str_buff, kernel_strlen(str_buff));
     char c = '\n';
-    console_write(0, &c, 1);
+    dev_write(log_dev_id, 0, &c, 1);
+    // console_write(0, &c, 1);
 #endif
 
     mutex_unlock(&mutex);

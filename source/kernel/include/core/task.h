@@ -3,9 +3,11 @@
 
 #include "cpu/cpu.h"
 #include "comm/types.h"
+#include "fs/file.h"
 #include "tools/list.h"
 
 #define     TASK_NAME_SIZE              32
+#define     TASK_OFILE_NR               128
 #define     TASK_TIME_SLICE_DEFAULT     10
 
 #define     TASK_FLAGS_SYSTEM           (1 << 0)
@@ -29,6 +31,8 @@ typedef struct _task_t {
     int sleep_ticks;
     int time_ticks;
     int slice_ticks;
+
+    file_t * file_table[TASK_OFILE_NR];
 
     char name[TASK_NAME_SIZE];
     list_node_t run_node;
@@ -79,5 +83,9 @@ void sys_sleep(uint32_t ms);
 int sys_getpid(void);
 int sys_fork(void);
 int sys_execve(char * name, char ** array, char ** env);
+
+file_t * task_file(int fd);
+int task_alloc_fd(file_t * file);
+void task_remove_fd(int fd);
 
 #endif

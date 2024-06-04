@@ -2,7 +2,12 @@
 #include "comm/types.h"
 #include "comm/cpu_instr.h"
 #include "comm/boot_info.h"
+#include "core/task.h"
+#include "cpu/mmu.h"
 #include "dev/console.h"
+#include "dev/dev.h"
+#include "fs/file.h"
+#include "sys/_intsup.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -44,12 +49,57 @@ static void read_disk(uint32_t sector, int sector_count, uint8_t * buff) {
     }
 }
 
+static int is_path_valid(const char * path) {
+    if ((path == (char *)0) || (path[0] == '\0')) {
+        return 0;
+    }
+    return 1;
+}
 
 int sys_open(const char * name, int flags, ...) {
-    if (name[0] == '/') {
-        read_disk(5000, 80, TEMP_ADDR);
-        temp_pos = TEMP_ADDR;
-        return TEMP_FILE_ID;
+    if (kernel_strncmp(name, "tty", 3) == 0) {
+        if (!is_path_valid(name)) {
+            log_printf("path is not valid.");
+            return -1;
+        }
+        int fd = -1;
+        file_t * file = file_alloc();
+        if (file) {
+            fd = task_alloc_fd(file);
+            if (fd < 0) {
+                goto sys_open_failed;
+            }
+        } else {
+            goto sys_open_failed;
+        }
+
+        int tty_num = name[4] - '0';
+        int dev_id = dev_open(DEV_TTY, tty_num, 0);
+        if (dev_id < 0) {
+            goto sys_open_failed;
+        }
+        file->dev_id = dev_id;
+        file->mode = 0;
+        file->pos = 0;
+        file->ref = 1;
+        file->type = FILE_TTY;
+        char * n = (char *)name;
+        kernel_strncpy(n, file->name, FILE_NAME_SIZE);
+        return fd;
+sys_open_failed:
+        if (file) {
+            file_free(file);
+        }
+        if (fd >= 0) {
+            task_remove_fd(fd);
+        }
+        return -1;
+    } else {
+        if (name[0] == '/') {
+            read_disk(5000, 80, TEMP_ADDR);
+            temp_pos = TEMP_ADDR;
+            return TEMP_FILE_ID;
+        }
     }
     return -1;
 }
@@ -60,16 +110,24 @@ int sys_read(int file, char * ptr, int len) {
         kernel_memcpy(temp_pos, ptr, len);
         temp_pos += len;
         return len;
+    } else {
+        file_t * p_file = task_file(file);
+        if (!p_file) {
+            log_printf("file not opened");
+            return -1;
+        }
+        return dev_read(p_file->dev_id, 0, ptr, len);
     }
-    return -1;
 }
 
 
 int sys_write(int file, char * ptr, int len) {
-    if (file == 1) {
-        console_write(0, ptr, len);
+    file_t * p_file = task_file(file);
+    if (!p_file) {
+        log_printf("file not opened");
+        return -1;
     }
-    return 0;
+    return dev_write(p_file->dev_id, 0, ptr, len);
 }
 
 int sys_lseek(int file, int ptr, int dir) {
@@ -90,5 +148,28 @@ int sys_isatty(int file) {
 }
 
 int sys_fstat(int file, struct stat * st) {
+    return -1;
+}
+
+void fs_init(void) {
+    file_table_init();
+}
+
+int sys_dup(int file) {
+    if (file < 0 || file >= TASK_OFILE_NR) {
+        log_printf("file %d is not valid", file);
+        return -1;
+    }
+    file_t * p_file = task_file(file);
+    if (!p_file) {
+        log_printf("file not opened");
+        return -1;
+    }
+    int fd = task_alloc_fd(p_file);
+    if (fd >= 0) {
+        p_file->ref++;
+        return fd;
+    }
+    log_printf("no task file available");
     return -1;
 }
