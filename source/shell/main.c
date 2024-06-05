@@ -2,6 +2,7 @@
 #include "lib_syscall.h"
 #include "os_cfg.h"
 #include "shell/main.h"
+#include "sys/_default_fcntl.h"
 #include "sys/_intsup.h"
 #include "tools/klib.h"
 #include <stdio.h>
@@ -143,7 +144,7 @@ static void run_exec_file(const char * path, int argc, char ** argv) {
 
 int main(int argc, char ** argv) {
 
-    open(argv[0], 0);
+    open(argv[0], O_RDWR);
     dup(0);
     dup(0);
 

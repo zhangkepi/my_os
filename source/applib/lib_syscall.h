@@ -19,7 +19,7 @@ int fork(void);
 int execve(const char * name, char * const * argv, char * const * env);
 int yield(void);
 
-int open(char * name, int flags, ...);
+int open(const char * name, int flags, ...);
 int read(int file, char * ptr, int len);
 int write(int file, char * ptr, int len);
 int close(int file);

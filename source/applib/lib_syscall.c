@@ -76,7 +76,7 @@ int yield(void) {
     return sys_call(&args);
 }
 
-int open(char * name, int flags, ...) {
+int open(const char * name, int flags, ...) {
     syscall_args_t args;
     args.id = SYS_open;
     args.args0 = (int)name;
