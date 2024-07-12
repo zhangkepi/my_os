@@ -6,31 +6,34 @@
 #include "cpu/mmu.h"
 #include "dev/console.h"
 #include "dev/dev.h"
+#include "dev/disk.h"
 #include "fs/file.h"
 #include "ipc/mutex.h"
+#include "os_cfg.h"
 #include "sys/_default_fcntl.h"
 #include "sys/_intsup.h"
 #include "tools/klib.h"
 #include "tools/list.h"
 #include "tools/log.h"
-#include <sys/file.h>
 
-#define     TEMP_FILE_ID        100
+
 #define     FS_TABLE_SIZE       10
 
-static uint8_t TEMP_ADDR[100 * 1024];
-static uint8_t * temp_pos;
-
 extern fs_op_t devfs_op;
+extern fs_op_t fatfs_op;
+
 static list_t mounted_list;
 static fs_t fs_table[FS_TABLE_SIZE];
 static list_t free_list;
 
+static fs_t * root_fs;
 
 static fs_op_t * get_fs_op(fs_type_t type, int major) {
     switch (type) {
         case FS_DEVFS:
             return &devfs_op;
+        case FS_FAT16:
+            return &fatfs_op;
         default:
             break;
     }
@@ -91,38 +94,6 @@ static void mounted_list_init(void) {
     list_init(&mounted_list);
 }
 
-//从磁盘第sector扇区开始读取sector_count个扇区的数据
-static void read_disk(uint32_t sector, int sector_count, uint8_t * buff) {
-    // 配置要读取的磁盘，工作模式
-    outb(0x1F6, 0xE0);
-
-    // 从哪个扇区开始读，读多少个扇区
-    outb(0x1F2, (uint8_t)(sector_count >> 8));
-    outb(0x1F3, (uint8_t)(sector >> 24));
-    outb(0x1F4, 0);
-    outb(0x1F5, 0);
-
-    // 从哪个扇区开始读，读多少个扇区
-    outb(0x1F2, (uint8_t)sector_count);
-    outb(0x1F3, (uint8_t)sector);
-    outb(0x1F4, (uint8_t)(sector >> 8));
-    outb(0x1F5, (uint8_t)(sector >> 16));
-
-    // 发送读取命令
-    outb(0x1F7, 0x24);
-
-    uint16_t * data_buff = (uint16_t *)buff;
-    while(sector_count-- > 0) {
-        // 磁盘未就绪一直等待
-        while ((inb(0x1F7) & 0x88) != 0x8) {}
-
-        // 一个扇区大小512字节，每次读两个字节
-        for (int i = 0; i < SECTOR_SIZE / 2; i++) {
-            *data_buff++ = inw(0x1F0);
-        }
-    }
-}
-
 static int is_path_valid(const char * path) {
     if ((path == (char *)0) || (path[0] == '\0')) {
         return 0;
@@ -179,12 +150,6 @@ const char * path_next_child(const char * path) {
 }
 
 int sys_open(const char * name, int flags, ...) {
-    if (kernel_strncmp(name, "/shell.elf", 6) == 0) {
-        read_disk(5000, 80, TEMP_ADDR);
-        temp_pos = TEMP_ADDR;
-        return TEMP_FILE_ID;
-    }
-
     file_t * file = file_alloc();
     if (!file) {
         return -1;
@@ -207,7 +172,7 @@ int sys_open(const char * name, int flags, ...) {
     if (fs) {
         name = path_next_child(name);
     } else {
-    
+        fs = root_fs;
     }
 
     file->mode = flags;
@@ -234,11 +199,6 @@ sys_open_failed:
 
 
 int sys_read(int file, char * ptr, int len) {
-    if (file == TEMP_FILE_ID) {
-        kernel_memcpy(temp_pos, ptr, len);
-        temp_pos += len;
-        return len;
-    } 
     if (is_fd_bad(file) || !ptr || !len) {
         return 0;
     }
@@ -280,10 +240,6 @@ int sys_write(int file, char * ptr, int len) {
 }
 
 int sys_lseek(int file, int ptr, int dir) {
-    if (file == TEMP_FILE_ID) {
-        temp_pos = TEMP_ADDR + ptr;
-        return 0;
-    }
     if (is_fd_bad(file)) {
         return 0;
     }
@@ -301,9 +257,6 @@ int sys_lseek(int file, int ptr, int dir) {
 
 
 int sys_close(int file) {
-    if (file == TEMP_FILE_ID) {
-        return 0;
-    } 
     if (is_fd_bad(file)) {
         log_printf("bad file %d", file);
         return 0;
@@ -358,9 +311,13 @@ int sys_fstat(int file, struct stat * st) {
 void fs_init(void) {
     mounted_list_init();
     file_table_init();
-
+    
+    disk_init();
     fs_t * fs = mount(FS_DEVFS, "/dev", 0, 0);
     ASSERT(fs != (fs_t *)0);
+
+    root_fs = mount(FS_FAT16, "/home", ROOT_DEV);
+    ASSERT(root_fs != (fs_t *)0);
 }
 
 int sys_dup(int file) {
@@ -380,4 +337,52 @@ int sys_dup(int file) {
     }
     log_printf("no task file available");
     return -1;
+}
+
+int sys_opendir(const char * name, DIR * dir) {
+    fs_protect(root_fs);
+    int err = root_fs->op->opendir(root_fs, name, dir);
+    fs_unprotect(root_fs);
+    return err;
+}
+
+int sys_readdir(DIR * dir, struct dirent * dirent) {
+    fs_protect(root_fs);
+    int err = root_fs->op->readdir(root_fs, dir, &dir->dirent);
+    fs_unprotect(root_fs);
+    return err;
+}
+
+
+int sys_closedir(DIR * dir) {
+    fs_protect(root_fs);
+    int err = root_fs->op->closedir(root_fs, dir);
+    fs_unprotect(root_fs);
+    return err;
+}
+
+int sys_ioctl(int fd, int cmd, int arg0, int arg1) {
+    if (is_fd_bad(fd)) {
+        log_printf("file %d is not valid", fd);
+        return -1;
+    }
+    file_t * p_file = task_file(fd);
+    if (!p_file) {
+        log_printf("file not opened");
+        return -1;
+    }
+    fs_t * fs = p_file->fs;
+    fs_protect(fs);
+
+    int err = fs->op->ioctl(p_file, cmd, arg0, arg1);   
+
+    fs_unprotect(fs);
+    return -1;
+}
+
+int sys_unlink(const char * path_name) {
+    fs_protect(root_fs);
+    int err = root_fs->op->unlink(root_fs, path_name);
+    fs_unprotect(root_fs);
+    return err;
 }

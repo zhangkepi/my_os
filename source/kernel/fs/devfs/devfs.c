@@ -70,6 +70,10 @@ int devfs_stat(file_t * file, struct stat *st) {
     return 0;
 }
 
+int devfs_ioctl(file_t * file, int cmd, int arg0, int arg1) {
+    return dev_control(file->dev_id, cmd, arg0, arg1);
+}
+
 fs_op_t devfs_op = {
     .mount = devfs_mount,
     .unmount = devfs_unmount,
@@ -78,5 +82,6 @@ fs_op_t devfs_op = {
     .write = devfs_write,
     .close = devfs_close,
     .seek = devfs_seek,
-    .stat = devfs_stat
+    .stat = devfs_stat,
+    .ioctl = devfs_ioctl
 };

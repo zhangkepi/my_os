@@ -1,4 +1,6 @@
+#include "dev/console.h"
 #include "dev/tty.h"
+#include "fs/file.h"
 #include "lib_syscall.h"
 #include "os_cfg.h"
 #include "shell/main.h"
@@ -80,6 +82,131 @@ static int do_exit(int argc, char ** argv) {
     return 0;
 }
 
+static int do_ls(int argc, char ** argv) {
+    DIR * p_dir = opendir("temp");
+    if (p_dir == NULL) {
+        printf("open dir failed.");
+        return -1;
+    }
+    struct dirent * entry;
+    while ((entry = readdir(p_dir)) != NULL) {
+        strlwr(entry->name);
+        printf("%c %s %d\n",
+            entry->type == FILE_DIR ? 'd' : 'f',
+            entry->name,
+            entry->size
+        );
+    }
+    closedir(p_dir);
+    return 0;
+}
+
+static int do_less(int argc, char ** argv) {
+    int line_mode = 0;
+    int ch;
+    while ((ch = getopt(argc, argv, "lh")) != -1) {
+        switch (ch) {
+            case 'h':
+                puts("show file content");
+                puts("Usage: less [-l] file");
+                optind = 1;
+                return 0;
+            case 'l':
+                line_mode = 1;
+                break;
+            case '?':
+                if (optarg) {
+                    fprintf(stderr, ESC_COLOR_ERROR"Unknown option: -%s\n"ESC_COLOR_DEFAULT, optarg);
+                }
+                optind = 1;
+                return -1;
+        }
+    }
+    if (optind > argc - 1) {
+        fprintf(stderr, "No file\n");
+        optind = 1;
+        return -1;
+    }
+    FILE * file = fopen(argv[optind], "r");
+    if (file == NULL) {
+        fprintf(stderr, "open file failed. %s", argv[optind]);
+        optind = 1;
+        return -1;
+    }
+    char * buf = (char *)malloc(255);
+    if (line_mode == 0) {
+        while (fgets(buf, 255, file) != NULL) {
+            fputs(buf, stdout);
+        }
+    } else {
+        setvbuf(stdin, NULL, _IONBF, 0);
+        ioctl(0, TTY_CMD_ECHO, 0, 0);
+        while (1) {
+            char * b = fgets(buf, 255, file);
+            if (b == NULL) {
+                break;
+            }
+            fputs(buf, stdout);
+
+            char ch;
+            while ((ch = fgetc(stdin)) != 'n') {
+                if (ch == 'q') {
+                    goto less_quit;
+                }
+            }
+        }
+less_quit:
+        setvbuf(stdin, NULL, _IONBF, BUFSIZ);
+        ioctl(0, TTY_CMD_ECHO, 1, 0);
+    }
+    
+    free(buf);
+    fclose(file);
+    optind = 1;
+    return 0;
+}
+
+static int do_cp(int argc, char ** argv) {
+    if (argc < 3) {
+        fprintf(stderr, "no [src] or [to]");
+        return -1;
+    }
+    FILE * from, * to;
+    from = fopen(argv[1], "rb");
+    to = fopen(argv[2], "wb");
+    if (!from || !to) {
+        fprintf(stderr, "open file failed..");
+        goto ls_failed;
+    }
+    char * buf = (char *)malloc(255);
+    int size = 0;
+    while ((size = fread(buf, 1, 255, from)) > 0) {
+        fwrite(buf, 1, size, to);
+    }
+    free(buf);
+ls_failed:
+    if (from) {
+        fclose(from);
+    }
+    if (to) {
+        fclose(to);
+    }
+    return 0;
+}
+
+static int do_rm(int argc, char ** argv) {
+    if (argc < 2) {
+        fprintf(stderr, "no file");
+        return -1;
+    }
+    int err = unlink(argv[1]);
+    if (err < 0) {
+        fprintf(stderr, "rm file failed: %s", argv[1]);
+        return err;
+    }
+    return 0;
+}
+
 static const cli_cmd_t cmd_list[] = {
     {
         .name = "help",
@@ -100,6 +227,26 @@ static const cli_cmd_t cmd_list[] = {
         .name = "quit",
         .usage = "quit from shell",
         .do_func = do_exit,
+    },
+    {
+        .name = "ls",
+        .usage = "list -- list director",
+        .do_func = do_ls,
+    },
+    {
+        .name = "less",
+        .usage = "less [-l] file -- show file",
+        .do_func = do_less,
+    },
+    {
+        .name = "cp",
+        .usage = "cp src dest -- copy file",
+        .do_func = do_cp,
+    },
+    {
+        .name = "rm",
+        .usage = "rm file -- remove file",
+        .do_func = do_rm,
     }
 };
 
@@ -131,8 +278,9 @@ static void run_exec_file(const char * path, int argc, char ** argv) {
     if (pid < 0) {
         fprintf(stderr, "fork failed %s", path);
     } else if (pid == 0) {
-        for (int i = 0; i < argc; i++) {
-            printf("arg %d = %s\n", i, argv[i]);
+        int err = execve(path, argv, (char *const *)0);
+        if (err < 0) {
+            fprintf(stderr, "exec failed: %s", path);
         }
         exit(-1);
     } else {
@@ -142,16 +290,27 @@ static void run_exec_file(const char * path, int argc, char ** argv) {
     }
 }
 
+static const char * find_exec_path(const char * file_name) {
+    static char path[255];
+    int fd = open(file_name, 0);
+    if (fd < 0) {
+        sprintf(path, "%s.elf", file_name);
+        fd = open(path, 0);
+        if (fd < 0) {
+            return (const char * )0;
+        }
+        close(fd);
+        return path;
+    }
+    close(fd);
+    return file_name;
+}
+
 int main(int argc, char ** argv) {
 
     open(argv[0], O_RDWR);
     dup(0);
     dup(0);
-
-    puts("Hello from x86 os");
-    printf("os version: %s\n", OS_VERSION);
-    puts("author: kp_zhang");
-    puts("create date: 2024-06-04");
 
     cli_init(promot, cmd_list, sizeof(cmd_list) / sizeof(cli_cmd_t));
 
@@ -162,7 +321,11 @@ int main(int argc, char ** argv) {
             continue;
         }
 
-        char * cr = strchr(cli.curr_input, '\r');
+        char * cr = strchr(cli.curr_input, '\n');
+        if (cr) {
+            *cr = '\0';
+        }
+        cr = strchr(cli.curr_input, '\r');
         if (cr) {
             *cr = '\0';
         }
@@ -184,7 +347,11 @@ int main(int argc, char ** argv) {
             run_buildin(cmd, argc, argv);
             continue;
         }
-        run_exec_file("", argc, argv);
+        const char * path = find_exec_path(argv[0]);
+        if (path) {
+            run_exec_file(path, argc, argv);
+            continue;
+        }
         fprintf(stderr, ESC_COLOR_ERROR"Unknown command: %s\n"ESC_COLOR_DEFAULT, cli.curr_input);
     }
 }

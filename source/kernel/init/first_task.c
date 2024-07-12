@@ -6,7 +6,7 @@
 
 int first_task_main(void) {
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < TTY_NR; i++) {
         int pid = fork();
         if (pid < 0) {
             log_printf("create shell failed.");
@@ -15,7 +15,7 @@ int first_task_main(void) {
             char tty_num[] = "/dev/tty?";
             tty_num[sizeof(tty_num) - 2] = i + '0';
             char * argv[] = {tty_num, (char *)0};
-            execve("/shell.elf", argv, (char **)0);
+            execve("shell.elf", argv, (char **)0);
             while (1) {
                 msleep(1000);
             }

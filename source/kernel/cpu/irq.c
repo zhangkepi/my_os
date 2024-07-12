@@ -1,5 +1,7 @@
 #include "comm/cpu_instr.h"
 #include "comm/types.h"
+#include "core/syscall.h"
+#include "core/task.h"
 #include "cpu/irq.h"
 #include "cpu/cpu.h"
 #include "os_cfg.h"
@@ -48,8 +50,12 @@ static void do_default_handler(exception_frame_t * frame, const char * message) 
     log_printf("--------------------------------------------");
     log_printf("IRQ/Exception happend: %s", message);
     dump_core_regs(frame);
-    for (; ; ) {
-        hlt();
+    if (frame->cs & 0x3) {
+        sys_exit(frame->err_code);
+    } else {
+        while (1) {
+            hlt();
+        }	
     }
 } 
 
@@ -124,9 +130,13 @@ void do_handler_general_protection(exception_frame_t * frame) {
     log_printf("segment index: %d", frame->err_code & 0xFFF8);
 
     dump_core_regs(frame);
-    while (1) {
-        hlt();
-    }	
+    if (frame->cs & 0x3) {
+        sys_exit(frame->err_code);
+    } else {
+        while (1) {
+            hlt();
+        }	
+    }
 }
 
 void do_handler_page_fault(exception_frame_t * frame) {
@@ -152,7 +162,13 @@ void do_handler_page_fault(exception_frame_t * frame) {
     }
 
     dump_core_regs(frame);
-    while (1) {hlt();}
+    if (frame->cs & 0x3) {
+        sys_exit(frame->err_code);
+    } else {
+        while (1) {
+            hlt();
+        }	
+    }
 }
 
 void do_handler_fpu_error(exception_frame_t * frame) {

@@ -3,9 +3,11 @@
 #include "tools/klib.h"
 
 extern dev_desc_t dev_tty_desc;
+extern dev_desc_t dev_disk_desc;
 
 static dev_desc_t * dev_desc_tbl[] = {
-    &dev_tty_desc
+    &dev_tty_desc, 
+    &dev_disk_desc
 };
 
 static device_t dev_tbl[DEV_TABLE_SIZE];

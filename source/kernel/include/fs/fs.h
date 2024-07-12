@@ -1,6 +1,8 @@
 #ifndef FS_H
 #define FS_H
 
+#include "applib/lib_syscall.h"
+#include "fs/fatfs/fatfs.h"
 #include "fs/file.h"
 #include "ipc/mutex.h"
 #include "sys/_intsup.h"
@@ -14,6 +16,7 @@ struct _fs_t;
 
 typedef enum _fs_type_t {
     FS_DEVFS,
+    FS_FAT16
 }fs_type_t;
 
 typedef struct _fs_op_t {
@@ -25,6 +28,12 @@ typedef struct _fs_op_t {
     void (*close)(file_t * file);
     int (*seek)(file_t * file, uint32_t offset, int dir);
     int (*stat)(file_t * file, struct stat *st);
+    int (*ioctl)(file_t * file, int cmd, int arg0, int arg1);
+
+    int (*opendir)(struct _fs_t * fs, const char * name, DIR * dir);
+    int (*readdir)(struct _fs_t * fs, DIR * dir, struct dirent * dirent);
+    int (*closedir)(struct _fs_t * fs, DIR * dir);
+    int (*unlink)(struct _fs_t * fs, const char * path);
 }fs_op_t;
 
 typedef struct _fs_t {
@@ -35,6 +44,10 @@ typedef struct _fs_t {
     int dev_id;
     list_node_t node;
     mutex_t * mutex;
+
+    union {
+        fat_t fat_data;
+    };
 } fs_t;
 
 
@@ -48,6 +61,12 @@ int sys_close(int file);
 int sys_isatty(int file);
 int sys_fstat(int file, struct stat * st);
 int sys_dup(int file);
+int sys_ioctl(int fd, int cmd, int arg0, int arg1);
+
+int sys_opendir(const char * name, DIR * dir);
+int sys_readdir(DIR * dir, struct dirent * dirent);
+int sys_closedir(DIR * dir);
+int sys_unlink(const char * path_name);
 
 int path_2_num(const char * path, int * num);
 const char * path_next_child(const char * name);

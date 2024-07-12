@@ -16,6 +16,10 @@ static inline uint16_t inw(uint16_t port) {
     return rv;
 }
 
+static inline void outw(uint16_t port, uint16_t data) {
+    __asm__ __volatile__("out %[v], %[p]"::[p]"d"(port),[v]"a"(data));
+}
+
 
 static inline void far_jmp(uint32_t selector, uint32_t offset) {
     uint32_t addr[] = {offset, selector};

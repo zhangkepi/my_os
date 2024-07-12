@@ -5,6 +5,7 @@
 #define TTY_NR              8
 #define TTY_OBUF_SIZE       1024
 #define TTY_IBUF_SIZE       1024
+#define TTY_CMD_ECHO        0x1
 #define TTY_OCRLF           (1 << 0)
 #define TTY_INCLR           (1 << 0)
 #define TTY_IECHO           (1 << 1)

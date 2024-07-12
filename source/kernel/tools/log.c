@@ -56,6 +56,7 @@ void log_printf(const char * fmt, ...) {
 
 #else
     // console_write(0, str_buff, kernel_strlen(str_buff));
+    dev_write(log_dev_id, 0, "log:", 4);
     dev_write(log_dev_id, 0, str_buff, kernel_strlen(str_buff));
     char c = '\n';
     dev_write(log_dev_id, 0, &c, 1);

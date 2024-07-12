@@ -19,7 +19,7 @@ int kernel_strncmp(const char * s1, const char * s2, int size);
 int kernel_strlen(const char * str);
 
 void kernel_memcpy(void * src, void * dest, int size);
-void kernel_memset(void * desc, uint8_t v, int size);
+void kernel_memset(void * dest, uint8_t v, int size);
 int kernel_memcmp(void * d1, void * d2, int size);
 
 void kernel_sprintf(char * buf, const char * fmt, ...);

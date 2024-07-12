@@ -58,6 +58,8 @@
 #define     ERR_GP_EXT                 (1 << 0)
 #define     ERR_GP_IDT                 (1 << 1)
 
+#define     IRQ14_HARDDISK_PRIMARY     (0x20 + 14)
+
 
 
 typedef struct _exception_frame_t {

@@ -41,7 +41,11 @@ void move_to_first_task(void) {
 }
 
 void init_main(void) {
+    log_printf("==============================");
     log_printf("Kernel is running...");
+    log_printf("Version: %s %s", OS_VERSION, "diyx86 os");
+    log_printf("==============================");
+    
     task_first_init();
     move_to_first_task();
 }

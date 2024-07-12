@@ -1,7 +1,8 @@
-#include "lib_syscall.h"
+#include "applib/lib_syscall.h"
+#include "applib/lib_syscall.h"
 #include "core/syscall.h"
 #include "os_cfg.h"
-#include <stdlib.h>
+#include "comm/types.h"
 
 
 static inline int sys_call(syscall_args_t * args) {
@@ -170,70 +171,6 @@ int wait(int * status) {
     syscall_args_t args;
     args.id = SYS_wait;
     args.args0 = (int)status;
-
-    return sys_call(&args);
-}
-
-DIR * opendir(const char * path) {
-    DIR * dir = (DIR *)malloc(sizeof(DIR));
-    if (dir == (DIR *)0) {
-        return (DIR *)0;
-    }
-
-    syscall_args_t args;
-    args.id = SYS_opendir;
-    args.args0 = (int)path;
-    args.args1 = (int)dir;
-
-    int err = sys_call(&args);
-    if (err < 0) {
-        free(dir);
-        return (DIR *)0;
-    }
-
-    return dir;
-}
-
-struct dirent * readdir(DIR * dir) {
-    syscall_args_t args;
-    args.id = SYS_readdir;
-    args.args0 = (int)dir;
-    args.args1 = (int)&dir->dirent;
-
-    int err = sys_call(&args);
-    if (err < 0) {
-        return (struct dirent *)0;
-    }
-    return &dir->dirent;
-}
-
-int closedir(DIR * dir) {
-    syscall_args_t args;
-    args.id = SYS_closedir;
-    args.args0 = (int)dir;
-
-    sys_call(&args);
-
-    free(dir);
-
-    return 0;
-}
-
-int ioctl(int file, int cmd, int arg0, int arg1) {
-    syscall_args_t args;
-    args.id = SYS_ioctl;
-    args.args0 = (int)file;
-    args.args1 = (int)cmd;
-    args.args2 = (int)arg0;
-    args.args3 = (int)arg1;
-
-    return sys_call(&args);
-}
-
-int unlink(const char * path_name) {
-    syscall_args_t args;
-    args.id = SYS_unlink;
-    args.args0 = (int)path_name;
 
     return sys_call(&args);
 }

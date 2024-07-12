@@ -15,7 +15,7 @@
 _start:
 
 	# 平坦模型，所有段寄存器设为0 (段基址为0)
-	mov $0, %ax
+ 	mov $0, %ax
 	mov %ax, %ds
 	mov %ax, %ss
 	mov %ax, %es

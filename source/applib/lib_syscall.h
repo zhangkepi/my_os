@@ -12,6 +12,18 @@ typedef struct _syscall_args_t {
     int args3;
 }syscall_args_t;
 
+struct dirent {
+    int index;
+    int type;
+    char name[255];
+    int size;
+};
+
+typedef struct _DIR {
+    int index;
+    struct dirent dirent;
+}DIR;
+
 void msleep(int ms);
 int get_pid();
 void print_msg(const char * fmt, int arg);
@@ -24,6 +36,8 @@ int read(int file, char * ptr, int len);
 int write(int file, char * ptr, int len);
 int close(int file);
 int lseek(int file, int offset, int dir);
+int ioctl(int file, int cmd, int arg0, int arg1);
+int unlink(const char * path_name);
 int isatty(int file);
 int fstat(int file, struct stat * stat);
 void * sbrk(ptrdiff_t inc);
@@ -31,5 +45,9 @@ void * sbrk(ptrdiff_t inc);
 int dup(int file);
 void _exit(int status);
 int wait(int * status);
+
+DIR * opendir(const char * path);
+struct dirent * readdir(DIR * dir);
+int closedir(DIR * dir);
 
 #endif
